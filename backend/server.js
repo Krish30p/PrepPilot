@@ -2,18 +2,25 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
 app.use(cors());
+
+//connect db
+connectDB();
+
+// middlewares
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
+// userRoutes
+app.use("/api/auth", userRoutes);
 
+
+// routes
 app.get("/", (req, res) => {
   res.send(" Backend Running on ");
 });

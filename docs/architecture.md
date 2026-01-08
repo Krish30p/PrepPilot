@@ -42,25 +42,25 @@ PrepPilot/
 │   │   │   └── gemini.js
 │   │   │
 │   │   ├── models/             # Mongoose schemas
-│   │   │   ├── User.js
+│   │   │   ├── userModel.js
 │   │   │   ├── Resume.js
 │   │   │   ├── Interview.js
 │   │   │   └── Session.js
 │   │   │
 │   │   ├── controllers/        # Business logic
-│   │   │   ├── auth.controller.js
+│   │   │   ├── userController.js
 │   │   │   ├── resume.controller.js
 │   │   │   ├── interview.controller.js
 │   │   │   └── admin.controller.js
 │   │   │
 │   │   ├── routes/             # API routes
-│   │   │   ├── auth.routes.js
+│   │   │   ├── userRoutes.js
 │   │   │   ├── resume.routes.js
 │   │   │   ├── interview.routes.js
 │   │   │   └── admin.routes.js
 │   │   │
 │   │   ├── middlewares/        # Auth, RBAC, validation
-│   │   │   ├── auth.middleware.js
+│   │   │   ├── authMiddleware.js
 │   │   │   ├── role.middleware.js
 │   │   │   └── error.middleware.js
 │   │   │
