@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../utils/axiosInstance";
+import axios from "axios";
+import { BASE_URL } from "../utils/apiPath";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,13 +27,17 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post("/users/login", formData);
+      const res = await axios.post(
+        `${BASE_URL}/users/login`,
+        formData
+      );
 
-      // Save token (basic version)
+      // Save token
       localStorage.setItem("token", res.data.token);
 
-      navigate("/dashboard");
+      navigate("/dashboard"); // or wherever you want
     } catch (err) {
+      console.log("LOGIN ERROR 👉", err.response?.data || err);
       setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
@@ -82,7 +87,7 @@ const Login = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition"
+          className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition disabled:opacity-60"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
