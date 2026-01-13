@@ -326,7 +326,7 @@ const Dashboard = () => {
           <div className="space-y-8">
             {/* My Contributions */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">My Contributions</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Add Your Contribution</h2>
               
               <div className="space-y-4 mb-6">
                 {contributionStats.map((stat, index) => (
@@ -345,9 +345,13 @@ const Dashboard = () => {
                   </div>
                 ))}
               </div>
-
               <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium flex items-center justify-center gap-2">
-                <Share2 className="w-5 h-5" />
+                {/* <Share2 className="w-5 h-5" /> */}
+                Share Your Resume 
+              </button>
+<br />
+              <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium flex items-center justify-center gap-2">
+                {/* <Share2 className="w-5 h-5" /> */}
                 Share Your Placement Experience
               </button>
             </div>
