@@ -1,8 +1,10 @@
 import React, { useContext } from "react";
 import { UserContext } from "../context/UserContext";
+import { Search, TrendingUp, Award, FileText, Users } from "lucide-react";
 
 const Dashboard = () => {
   const context = useContext(UserContext);
+  const [searchInput, setSearchInput] = React.useState("");
   const [searchQuery, setSearchQuery] = React.useState("");
 
   if (!context) {
@@ -12,22 +14,44 @@ const Dashboard = () => {
   const { user, loading, clearUser } = context;
 
   if (loading || !user) {
-    return <div className="p-6">Loading dashboard...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   const experiences = [
-    { company: "Google", role: "SWE", difficulty: "Hard", rounds: 5 },
-    { company: "Amazon", role: "SDE Intern", difficulty: "Medium", rounds: 3 },
-    { company: "Microsoft", role: "SWE", difficulty: "Medium", rounds: 4 },
+    { company: "Google", role: "SWE", difficulty: "Hard", rounds: 5, salary: "₹45 LPA" },
+    { company: "Amazon", role: "SDE Intern", difficulty: "Medium", rounds: 3, salary: "₹80k/month" },
+    { company: "Microsoft", role: "SWE", difficulty: "Medium", rounds: 4, salary: "₹42 LPA" },
+    { company: "Meta", role: "Frontend Engineer", difficulty: "Hard", rounds: 6, salary: "₹50 LPA" },
+    { company: "Netflix", role: "SDE II", difficulty: "Hard", rounds: 5, salary: "₹55 LPA" },
+    { company: "Apple", role: "Software Engineer", difficulty: "Medium", rounds: 4, salary: "₹48 LPA" },
   ];
 
-  const filteredExperiences = experiences.filter((exp) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      exp.company.toLowerCase().includes(query) ||
-      exp.role.toLowerCase().includes(query)
-    );
-  });
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const filteredExperiences = searchQuery
+    ? experiences.filter((exp) => {
+        const query = searchQuery.toLowerCase();
+        return (
+          exp.company.toLowerCase().includes(query) ||
+          exp.role.toLowerCase().includes(query)
+        );
+      })
+    : experiences;
 
   const mySkills = ["DSA", "React", "Node.js", "SQL"];
   const popularSkills = [
@@ -36,83 +60,157 @@ const Dashboard = () => {
     { skill: "React", percent: 55 },
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">
-          Welcome back, {user.name} 👋
-        </h1>
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case "Hard":
+        return "bg-red-100 text-red-700";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-700";
+      case "Easy":
+        return "bg-green-100 text-green-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
 
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
-            {user.name[0]}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 md:p-6">
+      {/* Header */}
+      <header className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-indigo-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              Welcome back, {user.name}
+            </h1>
+            <p className="text-gray-600 mt-1">Track your placement journey and explore opportunities</p>
           </div>
-          <button
-            onClick={clearUser}
-            className="text-sm text-red-600 hover:underline"
-          >
-            Logout
-          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+              {user.name[0]}
+            </div>
+            <button
+              onClick={clearUser}
+              className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main */}
-        <div className="lg:col-span-3 space-y-8">
+        <div className="lg:col-span-3 space-y-6">
           {/* Explore */}
-          <section className="bg-white p-6 rounded-xl shadow">
-            <h2 className="text-xl font-semibold mb-4">
-              Explore Placement Experiences
-            </h2>
-
-            <input
-              placeholder="Search by Company, Role, or College"
-              className="w-full border px-4 py-2 rounded-lg mb-4"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-
-            <div className="flex gap-2 mb-4 flex-wrap">
-              {["Top Companies", "Recent", "Internships", "Full-Time"].map(
-                (tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-gray-100 rounded-full text-sm"
-                  >
-                    {tag}
-                  </span>
-                )
-              )}
+          <section className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-indigo-100">
+            <div className="flex items-center gap-2 mb-6">
+              <Search className="w-6 h-6 text-indigo-600" />
+              <h2 className="text-2xl font-bold text-gray-800">
+                Explore Placement Experiences
+              </h2>
             </div>
 
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg">
-              Explore All Experiences
+            <div className="relative mb-6">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    placeholder="Search by Company, Role, or College..."
+                    className="w-full border-2 border-gray-200 pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                  />
+                </div>
+                <button
+                  onClick={handleSearch}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium"
+                >
+                  <Search className="w-5 h-5" />
+                  Search
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {["Top Companies", "Recent", "Internships", "Full-Time"].map((tag) => (
+                <button
+                  key={tag}
+                  className="px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-full text-sm font-medium text-indigo-700 transition-all border border-indigo-200"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+
+            <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-medium">
+              Explore All Experiences →
             </button>
           </section>
 
           {/* Experiences */}
           <section>
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-indigo-600" />
               Recently Shared Experiences
+              {searchQuery && (
+                <span className="text-sm font-normal text-gray-500">
+                  (Results for "{searchQuery}")
+                </span>
+              )}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredExperiences.length > 0 ? (
                 filteredExperiences.map((e, i) => (
-                  <div key={i} className="bg-white p-5 rounded-xl shadow">
-                    <h3 className="font-semibold">{e.company}</h3>
-                    <p className="text-sm text-gray-600">{e.role}</p>
-                    <p className="mt-2 text-sm">Difficulty: {e.difficulty}</p>
-                    <p className="text-sm">Rounds: {e.rounds}</p>
-                    <button className="mt-3 text-indigo-600 hover:underline">
+                  <div
+                    key={i}
+                    className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-indigo-100 hover:border-indigo-300 group"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800 group-hover:text-indigo-600 transition-colors">
+                          {e.company}
+                        </h3>
+                        <p className="text-sm text-gray-600 font-medium">{e.role}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(e.difficulty)}`}>
+                        {e.difficulty}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Users className="w-4 h-4 text-indigo-500" />
+                        <span>Rounds: {e.rounds}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
+                        <Award className="w-4 h-4" />
+                        <span>{e.salary}</span>
+                      </div>
+                    </div>
+                    
+                    <button className="w-full mt-3 text-indigo-600 hover:text-indigo-700 font-medium hover:bg-indigo-50 py-2 rounded-lg transition-all flex items-center justify-center gap-2">
                       View Experience →
                     </button>
                   </div>
                 ))
               ) : (
-                <div className="col-span-2 text-center py-8 text-gray-500">
-                  No experiences found matching "{searchQuery}"
+                <div className="col-span-2 bg-white rounded-2xl p-12 text-center border-2 border-dashed border-gray-300">
+                  <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg">
+                    No experiences found matching "{searchQuery}"
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSearchInput("");
+                    }}
+                    className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
+                  >
+                    Clear search
+                  </button>
                 </div>
               )}
             </div>
@@ -121,48 +219,72 @@ const Dashboard = () => {
 
         {/* Sidebar */}
         <aside className="space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow">
-            <h3 className="font-semibold mb-4">My Contributions</h3>
-            <p>Resumes Shared: 1</p>
-            <p>Experiences Posted: 2</p>
-            <p>Total Views: 340</p>
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
+            <div className="flex items-center gap-2 mb-4">
+              <FileText className="w-5 h-5 text-indigo-600" />
+              <h3 className="font-bold text-lg">My Contributions</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
+                <span className="text-gray-700">Resumes Shared</span>
+                <span className="font-bold text-indigo-600">1</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+                <span className="text-gray-700">Experiences Posted</span>
+                <span className="font-bold text-purple-600">2</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-pink-50 rounded-lg">
+                <span className="text-gray-700">Total Views</span>
+                <span className="font-bold text-pink-600">340</span>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow">
-            <h3 className="font-semibold mb-2">Resume Insights</h3>
-            <p className="text-sm mb-3">Total resumes: 124</p>
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
+            <div className="flex items-center gap-2 mb-4">
+              <Award className="w-5 h-5 text-indigo-600" />
+              <h3 className="font-bold text-lg">Resume Insights</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">Total resumes: 124</p>
 
-            <div className="flex gap-2 flex-wrap mb-4">
+            <div className="flex gap-2 flex-wrap mb-6">
               {mySkills.map((s) => (
                 <span
                   key={s}
-                  className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm"
+                  className="px-3 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 rounded-full text-sm font-medium border border-indigo-200"
                 >
                   {s}
                 </span>
               ))}
             </div>
 
-            {popularSkills.map((p) => (
-              <div key={p.skill} className="mb-2">
-                <div className="flex justify-between text-sm">
-                  <span>{p.skill}</span>
-                  <span>{p.percent}%</span>
+            <div className="space-y-3">
+              {popularSkills.map((p) => (
+                <div key={p.skill}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium text-gray-700">{p.skill}</span>
+                    <span className="font-bold text-indigo-600">{p.percent}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full transition-all duration-500"
+                      style={{ width: `${p.percent}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 bg-gray-200 rounded">
-                  <div
-                    className="h-2 bg-indigo-600 rounded"
-                    style={{ width: `${p.percent}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </aside>
       </div>
 
-      <footer className="mt-10 text-center text-gray-600 text-sm">
-        🚀 Got placed? Share your journey and help others on PrepPilot.
+      <footer className="mt-10 text-center bg-white rounded-2xl p-6 shadow-lg border border-indigo-100">
+        <p className="text-gray-600">
+          🚀 <span className="font-semibold">Got placed?</span> Share your journey and help others on{" "}
+          <span className="font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            PrepPilot
+          </span>
+        </p>
       </footer>
     </div>
   );
