@@ -3,6 +3,7 @@ import { UserContext } from "../context/UserContext";
 
 const Dashboard = () => {
   const context = useContext(UserContext);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   if (!context) {
     return <div className="p-6">Context not available</div>;
@@ -19,6 +20,14 @@ const Dashboard = () => {
     { company: "Amazon", role: "SDE Intern", difficulty: "Medium", rounds: 3 },
     { company: "Microsoft", role: "SWE", difficulty: "Medium", rounds: 4 },
   ];
+
+  const filteredExperiences = experiences.filter((exp) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      exp.company.toLowerCase().includes(query) ||
+      exp.role.toLowerCase().includes(query)
+    );
+  });
 
   const mySkills = ["DSA", "React", "Node.js", "SQL"];
   const popularSkills = [
@@ -60,6 +69,8 @@ const Dashboard = () => {
             <input
               placeholder="Search by Company, Role, or College"
               className="w-full border px-4 py-2 rounded-lg mb-4"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
 
             <div className="flex gap-2 mb-4 flex-wrap">
@@ -87,17 +98,23 @@ const Dashboard = () => {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {experiences.map((e, i) => (
-                <div key={i} className="bg-white p-5 rounded-xl shadow">
-                  <h3 className="font-semibold">{e.company}</h3>
-                  <p className="text-sm text-gray-600">{e.role}</p>
-                  <p className="mt-2 text-sm">Difficulty: {e.difficulty}</p>
-                  <p className="text-sm">Rounds: {e.rounds}</p>
-                  <button className="mt-3 text-indigo-600 hover:underline">
-                    View Experience →
-                  </button>
+              {filteredExperiences.length > 0 ? (
+                filteredExperiences.map((e, i) => (
+                  <div key={i} className="bg-white p-5 rounded-xl shadow">
+                    <h3 className="font-semibold">{e.company}</h3>
+                    <p className="text-sm text-gray-600">{e.role}</p>
+                    <p className="mt-2 text-sm">Difficulty: {e.difficulty}</p>
+                    <p className="text-sm">Rounds: {e.rounds}</p>
+                    <button className="mt-3 text-indigo-600 hover:underline">
+                      View Experience →
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 text-center py-8 text-gray-500">
+                  No experiences found matching "{searchQuery}"
                 </div>
-              ))}
+              )}
             </div>
           </section>
         </div>
