@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { UserContext } from "../context/UserContext";
 import { Search, TrendingUp, Award, FileText, Users } from "lucide-react";
+import experiences from "../components/Experiences";
 
 const Dashboard = () => {
   const context = useContext(UserContext);
@@ -24,51 +25,6 @@ const Dashboard = () => {
       </div>
     );
   }
-
-  const experiences = [
-    {
-      company: "Google",
-      role: "SWE",
-      difficulty: "Hard",
-      rounds: 5,
-      salary: "₹45 LPA",
-    },
-    {
-      company: "Amazon",
-      role: "SDE Intern",
-      difficulty: "Medium",
-      rounds: 3,
-      salary: "₹80k/month",
-    },
-    {
-      company: "Microsoft",
-      role: "SWE",
-      difficulty: "Medium",
-      rounds: 4,
-      salary: "₹42 LPA",
-    },
-    {
-      company: "Meta",
-      role: "Frontend Engineer",
-      difficulty: "Hard",
-      rounds: 6,
-      salary: "₹50 LPA",
-    },
-    {
-      company: "Netflix",
-      role: "SDE II",
-      difficulty: "Hard",
-      rounds: 5,
-      salary: "₹55 LPA",
-    },
-    {
-      company: "Apple",
-      role: "Software Engineer",
-      difficulty: "Medium",
-      rounds: 4,
-      salary: "₹48 LPA",
-    },
-  ];
 
   const handleSearch = () => {
     setSearchQuery(searchInput);
@@ -131,7 +87,7 @@ const Dashboard = () => {
             >
               {user.name[0]}
             </button>
-            
+
             {showLogoutMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-10">
                 <button
