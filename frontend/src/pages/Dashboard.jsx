@@ -25,12 +25,48 @@ const Dashboard = () => {
   }
 
   const experiences = [
-    { company: "Google", role: "SWE", difficulty: "Hard", rounds: 5, salary: "₹45 LPA" },
-    { company: "Amazon", role: "SDE Intern", difficulty: "Medium", rounds: 3, salary: "₹80k/month" },
-    { company: "Microsoft", role: "SWE", difficulty: "Medium", rounds: 4, salary: "₹42 LPA" },
-    { company: "Meta", role: "Frontend Engineer", difficulty: "Hard", rounds: 6, salary: "₹50 LPA" },
-    { company: "Netflix", role: "SDE II", difficulty: "Hard", rounds: 5, salary: "₹55 LPA" },
-    { company: "Apple", role: "Software Engineer", difficulty: "Medium", rounds: 4, salary: "₹48 LPA" },
+    {
+      company: "Google",
+      role: "SWE",
+      difficulty: "Hard",
+      rounds: 5,
+      salary: "₹45 LPA",
+    },
+    {
+      company: "Amazon",
+      role: "SDE Intern",
+      difficulty: "Medium",
+      rounds: 3,
+      salary: "₹80k/month",
+    },
+    {
+      company: "Microsoft",
+      role: "SWE",
+      difficulty: "Medium",
+      rounds: 4,
+      salary: "₹42 LPA",
+    },
+    {
+      company: "Meta",
+      role: "Frontend Engineer",
+      difficulty: "Hard",
+      rounds: 6,
+      salary: "₹50 LPA",
+    },
+    {
+      company: "Netflix",
+      role: "SDE II",
+      difficulty: "Hard",
+      rounds: 5,
+      salary: "₹55 LPA",
+    },
+    {
+      company: "Apple",
+      role: "Software Engineer",
+      difficulty: "Medium",
+      rounds: 4,
+      salary: "₹48 LPA",
+    },
   ];
 
   const handleSearch = () => {
@@ -82,7 +118,9 @@ const Dashboard = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               Welcome back, {user.name}
             </h1>
-            <p className="text-gray-600 mt-1">Track your placement journey and explore opportunities</p>
+            <p className="text-gray-600 mt-1">
+              Track your placement journey and explore opportunities
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -134,14 +172,16 @@ const Dashboard = () => {
             </div>
 
             <div className="flex gap-2 mb-6 flex-wrap">
-              {["Top Companies", "Recent", "Internships", "Full-Time"].map((tag) => (
-                <button
-                  key={tag}
-                  className="px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-full text-sm font-medium text-indigo-700 transition-all border border-indigo-200"
-                >
-                  {tag}
-                </button>
-              ))}
+              {["Top Companies", "Recent", "Internships", "Full-Time"].map(
+                (tag) => (
+                  <button
+                    key={tag}
+                    className="px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-full text-sm font-medium text-indigo-700 transition-all border border-indigo-200"
+                  >
+                    {tag}
+                  </button>
+                ),
+              )}
             </div>
 
             <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-medium">
@@ -173,13 +213,17 @@ const Dashboard = () => {
                         <h3 className="font-bold text-lg text-gray-800 group-hover:text-indigo-600 transition-colors">
                           {e.company}
                         </h3>
-                        <p className="text-sm text-gray-600 font-medium">{e.role}</p>
+                        <p className="text-sm text-gray-600 font-medium">
+                          {e.role}
+                        </p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(e.difficulty)}`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(e.difficulty)}`}
+                      >
                         {e.difficulty}
                       </span>
                     </div>
-                    
+
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Users className="w-4 h-4 text-indigo-500" />
@@ -190,7 +234,7 @@ const Dashboard = () => {
                         <span>{e.salary}</span>
                       </div>
                     </div>
-                    
+
                     <button className="w-full mt-3 text-indigo-600 hover:text-indigo-700 font-medium hover:bg-indigo-50 py-2 rounded-lg transition-all flex items-center justify-center gap-2">
                       View Experience →
                     </button>
@@ -219,56 +263,83 @@ const Dashboard = () => {
 
         {/* Sidebar */}
         <aside className="space-y-6">
+          {/* Add Contributions */}
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-5">
               <FileText className="w-5 h-5 text-indigo-600" />
-              <h3 className="font-bold text-lg">My Contributions</h3>
+              <h3 className="font-bold text-lg">Add Contributions</h3>
             </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
-                <span className="text-gray-700">Resumes Shared</span>
-                <span className="font-bold text-indigo-600">1</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                <span className="text-gray-700">Experiences Posted</span>
-                <span className="font-bold text-purple-600">2</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-pink-50 rounded-lg">
-                <span className="text-gray-700">Total Views</span>
-                <span className="font-bold text-pink-600">340</span>
-              </div>
+
+            <div className="space-y-4">
+              {/* Add Resume */}
+              <button
+                onClick={() => navigate("/add-resume")}
+                className="w-full flex items-center justify-between p-4 rounded-xl
+                   bg-indigo-50 hover:bg-indigo-100 transition
+                   border border-indigo-200"
+              >
+                <span className="font-medium text-indigo-700">
+                  Add Your Resume
+                </span>
+                <span className="text-indigo-600 font-bold text-xl">+</span>
+              </button>
+
+              {/* Share Experience */}
+              <button
+                onClick={() => navigate("/share-experience")}
+                className="w-full flex items-center justify-between p-4 rounded-xl
+                   bg-purple-50 hover:bg-purple-100 transition
+                   border border-purple-200"
+              >
+                <span className="font-medium text-purple-700">
+                  Share Experience
+                </span>
+                <span className="text-purple-600 font-bold text-xl">+</span>
+              </button>
             </div>
           </div>
 
+          {/* AI Resume Insights */}
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
             <div className="flex items-center gap-2 mb-4">
               <Award className="w-5 h-5 text-indigo-600" />
-              <h3 className="font-bold text-lg">Resume Insights</h3>
+              <h3 className="font-bold text-lg">AI Resume Insights</h3>
             </div>
+
             <p className="text-sm text-gray-600 mb-4">Total resumes: 124</p>
 
+            {/* My Skills */}
             <div className="flex gap-2 flex-wrap mb-6">
-              {mySkills.map((s) => (
+              {mySkills.map((skill) => (
                 <span
-                  key={s}
-                  className="px-3 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 rounded-full text-sm font-medium border border-indigo-200"
+                  key={skill}
+                  className="px-3 py-1 bg-gradient-to-r from-indigo-100 to-purple-100
+                     text-indigo-700 rounded-full text-sm font-medium
+                     border border-indigo-200"
                 >
-                  {s}
+                  {skill}
                 </span>
               ))}
             </div>
 
+            {/* Popular Skills */}
             <div className="space-y-3">
-              {popularSkills.map((p) => (
-                <div key={p.skill}>
+              {popularSkills.map((item) => (
+                <div key={item.skill}>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="font-medium text-gray-700">{p.skill}</span>
-                    <span className="font-bold text-indigo-600">{p.percent}%</span>
+                    <span className="font-medium text-gray-700">
+                      {item.skill}
+                    </span>
+                    <span className="font-bold text-indigo-600">
+                      {item.percent}%
+                    </span>
                   </div>
+
                   <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className="h-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full transition-all duration-500"
-                      style={{ width: `${p.percent}%` }}
+                      className="h-2 bg-gradient-to-r from-indigo-600 to-purple-600
+                         rounded-full transition-all duration-500"
+                      style={{ width: `${item.percent}%` }}
                     />
                   </div>
                 </div>
@@ -280,7 +351,8 @@ const Dashboard = () => {
 
       <footer className="mt-10 text-center bg-white rounded-2xl p-6 shadow-lg border border-indigo-100">
         <p className="text-gray-600">
-          🚀 <span className="font-semibold">Got placed?</span> Share your journey and help others on{" "}
+          🚀 <span className="font-semibold">Got placed?</span> Share your
+          journey and help others on{" "}
           <span className="font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             PrepPilot
           </span>
