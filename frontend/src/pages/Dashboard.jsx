@@ -6,6 +6,7 @@ const Dashboard = () => {
   const context = useContext(UserContext);
   const [searchInput, setSearchInput] = React.useState("");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [showLogoutMenu, setShowLogoutMenu] = React.useState(false);
 
   if (!context) {
     return <div className="p-6">Context not available</div>;
@@ -123,16 +124,27 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-lg">
-              {user.name[0]}
-            </div>
+          <div className="relative">
             <button
-              onClick={clearUser}
-              className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
+              onClick={() => setShowLogoutMenu(!showLogoutMenu)}
+              className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-lg hover:shadow-xl transition-all cursor-pointer"
             >
-              Logout
+              {user.name[0]}
             </button>
+            
+            {showLogoutMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-10">
+                <button
+                  onClick={() => {
+                    clearUser();
+                    setShowLogoutMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors font-medium"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -273,7 +285,7 @@ const Dashboard = () => {
             <div className="space-y-4">
               {/* Add Resume */}
               <button
-                onClick={() => navigate("/add-resume")}
+                onClick={() => console.log("Navigate to add resume")}
                 className="w-full flex items-center justify-between p-4 rounded-xl
                    bg-indigo-50 hover:bg-indigo-100 transition
                    border border-indigo-200"
@@ -286,7 +298,7 @@ const Dashboard = () => {
 
               {/* Share Experience */}
               <button
-                onClick={() => navigate("/share-experience")}
+                onClick={() => console.log("Navigate to share experience")}
                 className="w-full flex items-center justify-between p-4 rounded-xl
                    bg-purple-50 hover:bg-purple-100 transition
                    border border-purple-200"
