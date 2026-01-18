@@ -135,7 +135,7 @@ const Dashboard = () => {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf"
+        accept=".pdf, .jpeg, .png"
         onChange={handleFileSelect}
         className="hidden"
       />
