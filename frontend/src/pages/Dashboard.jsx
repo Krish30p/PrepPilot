@@ -1,13 +1,52 @@
-import React, { useContext } from "react";
-import { UserContext } from "../context/UserContext";
-import { Search, TrendingUp, Award, FileText, Users } from "lucide-react";
-import experiences from "../components/Experiences";
+import React, { useContext, useRef } from "react";
+import { Search, TrendingUp, Award, FileText, Users, Upload } from "lucide-react";
+
+// Mock experiences data
+const experiences = [
+  {
+    company: "Google",
+    role: "Software Engineer",
+    difficulty: "Hard",
+    rounds: 5,
+    salary: "₹45 LPA"
+  },
+  {
+    company: "Microsoft",
+    role: "SDE Intern",
+    difficulty: "Medium",
+    rounds: 3,
+    salary: "₹1.2L/month"
+  },
+  {
+    company: "Amazon",
+    role: "SDE-1",
+    difficulty: "Hard",
+    rounds: 4,
+    salary: "₹38 LPA"
+  },
+  {
+    company: "Flipkart",
+    role: "Product Analyst",
+    difficulty: "Easy",
+    rounds: 2,
+    salary: "₹18 LPA"
+  }
+];
+
+// Mock UserContext for demo
+const UserContext = React.createContext({
+  user: { name: "Alex" },
+  loading: false,
+  clearUser: () => {}
+});
 
 const Dashboard = () => {
   const context = useContext(UserContext);
   const [searchInput, setSearchInput] = React.useState("");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showLogoutMenu, setShowLogoutMenu] = React.useState(false);
+  const [selectedFile, setSelectedFile] = React.useState(null);
+  const fileInputRef = useRef(null);
 
   if (!context) {
     return <div className="p-6">Context not available</div>;
@@ -33,6 +72,30 @@ const Dashboard = () => {
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSearch();
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type === "application/pdf") {
+        setSelectedFile(file);
+        console.log("Selected file:", file.name);
+      } else {
+        alert("Please select a PDF file");
+      }
+    }
+  };
+
+  const handleResumeButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDeleteResume = () => {
+    const confirmed = window.confirm("Are you sure you want to delete your resume?");
+    if (confirmed) {
+      setSelectedFile(null);
+      console.log("Resume deleted");
     }
   };
 
@@ -68,6 +131,15 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 md:p-6">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
       {/* Header */}
       <header className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-indigo-100">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -239,18 +311,43 @@ const Dashboard = () => {
             </div>
 
             <div className="space-y-4">
-              {/* Add Resume */}
-              <button
-                onClick={() => console.log("Navigate to add resume")}
-                className="w-full flex items-center justify-between p-4 rounded-xl
-                   bg-indigo-50 hover:bg-indigo-100 transition
-                   border border-indigo-200"
-              >
-                <span className="font-medium text-indigo-700">
-                  Add Your Resume
-                </span>
-                <span className="text-indigo-600 font-bold text-xl">+</span>
-              </button>
+              {/* Add/View Resume */}
+              {!selectedFile ? (
+                <button
+                  onClick={handleResumeButtonClick}
+                  className="w-full flex items-center justify-between p-4 rounded-xl
+                     bg-indigo-50 hover:bg-indigo-100 transition
+                     border border-indigo-200"
+                >
+                  <span className="font-medium text-indigo-700 flex items-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    Add Your Resume
+                  </span>
+                  <span className="text-indigo-600 font-bold text-xl">+</span>
+                </button>
+              ) : (
+                <div className="w-full p-4 rounded-xl bg-green-50 border border-green-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-green-700 flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Resume Uploaded
+                    </span>
+                    <button
+                      onClick={handleDeleteResume}
+                      className="text-red-600 hover:text-red-700 text-sm font-medium hover:bg-red-50 px-3 py-1 rounded-lg transition-all"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-2">{selectedFile.name}</p>
+                  <button
+                    onClick={() => alert("Opening resume viewer...")}
+                    className="w-full text-indigo-600 hover:text-indigo-700 font-medium hover:bg-indigo-50 py-2 rounded-lg transition-all text-sm"
+                  >
+                    See Your Resume →
+                  </button>
+                </div>
+              )}
 
               {/* Share Experience */}
               <button
