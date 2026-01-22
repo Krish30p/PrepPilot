@@ -1,69 +1,64 @@
-import React, { useContext, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Search, TrendingUp, Award, FileText, Users, Upload } from "lucide-react";
+import axios from "axios";
+import experiences from '../components/Experiences'
 
-// Mock experiences data
-const experiences = [
-  {
-    company: "Google",
-    role: "Software Engineer",
-    difficulty: "Hard",
-    rounds: 5,
-    salary: "₹45 LPA"
-  },
-  {
-    company: "Microsoft",
-    role: "SDE Intern",
-    difficulty: "Medium",
-    rounds: 3,
-    salary: "₹1.2L/month"
-  },
-  {
-    company: "Amazon",
-    role: "SDE-1",
-    difficulty: "Hard",
-    rounds: 4,
-    salary: "₹38 LPA"
-  },
-  {
-    company: "Flipkart",
-    role: "Product Analyst",
-    difficulty: "Easy",
-    rounds: 2,
-    salary: "₹18 LPA"
-  }
-];
-
-// Mock UserContext for demo
-const UserContext = React.createContext({
-  user: { name: "Alex" },
-  loading: false,
-  clearUser: () => {}
-});
 
 const Dashboard = () => {
-  const context = useContext(UserContext);
-  const [searchInput, setSearchInput] = React.useState("");
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [showLogoutMenu, setShowLogoutMenu] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [userName, setUserName] = useState("User");
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef(null);
 
-  if (!context) {
-    return <div className="p-6">Context not available</div>;
-  }
+  // Fetch user data from database
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        
+        if (!token) {
+          window.location.href = "/login";
+          return;
+        }
 
-  const { user, loading, clearUser } = context;
+        // Replace with your actual API endpoint
+        const response = await axios.get("YOUR_BACKEND_URL/api/user/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
 
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+        if (response.data?.user?.name) {
+          setUserName(response.data.user.name);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        
+        // If token is invalid, redirect to login
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    // Redirect to login page
+    window.location.href = "/login";
+  };
 
   const handleSearch = () => {
     setSearchQuery(searchInput);
@@ -131,11 +126,20 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 md:p-6">
+      {loading ? (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf, .jpeg, .png"
+        accept=".pdf"
         onChange={handleFileSelect}
         className="hidden"
       />
@@ -145,7 +149,7 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome back, {user.name}
+              Welcome back, {userName}
             </h1>
             <p className="text-gray-600 mt-1">
               Track your placement journey and explore opportunities
@@ -157,14 +161,14 @@ const Dashboard = () => {
               onClick={() => setShowLogoutMenu(!showLogoutMenu)}
               className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-lg hover:shadow-xl transition-all cursor-pointer"
             >
-              {user.name[0]}
+              {userName[0].toUpperCase()}
             </button>
 
             {showLogoutMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-10">
                 <button
                   onClick={() => {
-                    clearUser();
+                    handleLogout();
                     setShowLogoutMenu(false);
                   }}
                   className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors font-medium"
@@ -371,7 +375,7 @@ const Dashboard = () => {
               <h3 className="font-bold text-lg">AI Resume Insights</h3>
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">Total resumes: 124</p>
+            {/* <p className="text-sm text-gray-600 mb-4">Total resumes: 124</p> */}
 
             {/* My Skills */}
             <div className="flex gap-2 flex-wrap mb-6">
@@ -423,6 +427,8 @@ const Dashboard = () => {
           </span>
         </p>
       </footer>
+        </>
+      )}
     </div>
   );
 };
