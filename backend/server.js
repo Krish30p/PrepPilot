@@ -3,26 +3,24 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
-
-//connect db
-connectDB();
-
-// middlewares
 app.use(express.json());
 
-// userRoutes
-app.use("/api/auth", userRoutes);
-
+// connect db
+connectDB();
 
 // routes
+app.use("/api/auth", userRoutes);
+app.use("/api", uploadRoutes);
+
 app.get("/", (req, res) => {
-  res.send(" Backend Running on ");
+  res.send("Backend Running");
 });
 
 const PORT = process.env.PORT || 4000;
