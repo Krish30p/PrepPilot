@@ -2,9 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { Search, TrendingUp, Award, FileText, Users, Upload } from "lucide-react";
 import axios from "axios";
 import experiences from '../components/Experiences'
+import { useNavigate } from "react-router-dom";
+
 
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
@@ -355,16 +358,16 @@ const Dashboard = () => {
 
               {/* Share Experience */}
               <button
-                onClick={() => console.log("Navigate to share experience")}
-                className="w-full flex items-center justify-between p-4 rounded-xl
-                   bg-purple-50 hover:bg-purple-100 transition
-                   border border-purple-200"
-              >
-                <span className="font-medium text-purple-700">
-                  Share Experience
-                </span>
-                <span className="text-purple-600 font-bold text-xl">+</span>
-              </button>
+  onClick={() => navigate("/share-experience")}
+  className="w-full flex items-center justify-between p-4 rounded-xl
+     bg-purple-50 hover:bg-purple-100 transition
+     border border-purple-200"
+>
+  <span className="font-medium text-purple-700">
+    Share Experience
+  </span>
+  <span className="text-purple-600 font-bold text-xl">+</span>
+</button>
             </div>
           </div>
 
