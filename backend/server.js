@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import experienceRoutes from "./routes/experienceRoutes.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ connectDB();
 // routes
 app.use("/api/auth", userRoutes);
 app.use("/api", uploadRoutes);
+app.use("/api/experience", experienceRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend Running");
