@@ -6,6 +6,7 @@ const experienceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     company: {
       type: String,
@@ -25,13 +26,16 @@ const experienceSchema = new mongoose.Schema(
     rounds: {
       type: Number,
       required: true,
+      min: 1,
     },
     salary: {
       type: String,
+      default: "",
     },
     experience: {
       type: String,
       required: true,
+      trim: true,
     },
   },
   { timestamps: true }

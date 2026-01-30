@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Search,
   TrendingUp,
@@ -6,10 +6,14 @@ import {
   FileText,
   Users,
   Upload,
+  Briefcase,
+  DollarSign,
+  Trash2,
 } from "lucide-react";
 import axios from "axios";
 import experiences from "../components/Experiences";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../utils/apiPath";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +23,8 @@ const Dashboard = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [userName, setUserName] = useState("User");
   const [loading, setLoading] = useState(true);
+  const [myExperiences, setMyExperiences] = useState([]);
+  const [loadingExperiences, setLoadingExperiences] = useState(true);
   const fileInputRef = useRef(null);
 
   // Fetch user data from database
@@ -59,6 +65,85 @@ const Dashboard = () => {
 
     fetchUserData();
   }, []);
+
+  // Fetch user's shared experiences
+  useEffect(() => {
+    const fetchMyExperiences = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        
+        if (!token) {
+          setLoadingExperiences(false);
+          return;
+        }
+
+        const response = await axios.get(
+          `${BASE_URL}/api/experience/my-experiences`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.data?.experiences) {
+          setMyExperiences(response.data.experiences);
+        }
+      } catch (error) {
+        // If endpoint doesn't exist (404), silently continue with empty experiences
+        if (error.response?.status === 404) {
+          console.warn("Backend endpoint not configured yet. User experiences will be empty.");
+          setMyExperiences([]);
+        } else {
+          console.error("Error fetching my experiences:", error);
+        }
+      } finally {
+        setLoadingExperiences(false);
+      }
+    };
+
+    fetchMyExperiences();
+  }, []);
+
+  // ============================================================================
+  // MERGED DATA LOGIC - Combine backend and static experiences with isMine flag
+  // ============================================================================
+  const allExperiences = useMemo(() => {
+    // Add isMine flag to user's backend experiences
+    const userExperiences = myExperiences.map(exp => ({
+      ...exp,
+      isMine: true,
+      id: exp._id || exp.id, // Normalize ID field
+    }));
+
+    // Add isMine flag to static community experiences
+    const communityExperiences = experiences.map((exp, index) => ({
+      ...exp,
+      isMine: false,
+      id: exp.id || `community-${index}`, // Generate ID if missing
+    }));
+
+    // Merge: user's experiences first, then community experiences
+    return [...userExperiences, ...communityExperiences];
+  }, [myExperiences]);
+
+  // ============================================================================
+  // SEARCH LOGIC - Filter merged experiences based on search query
+  // ============================================================================
+  const filteredExperiences = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return allExperiences;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return allExperiences.filter((exp) => {
+      const companyMatch = exp.company?.toLowerCase().includes(query);
+      const roleMatch = exp.role?.toLowerCase().includes(query);
+      // Add more fields if needed (e.g., college, skills, etc.)
+      return companyMatch || roleMatch;
+    });
+  }, [allExperiences, searchQuery]);
 
   const handleLogout = () => {
     // Clear user data from localStorage
@@ -104,15 +189,37 @@ const Dashboard = () => {
     }
   };
 
-  const filteredExperiences = searchQuery
-    ? experiences.filter((exp) => {
-        const query = searchQuery.toLowerCase();
-        return (
-          exp.company.toLowerCase().includes(query) ||
-          exp.role.toLowerCase().includes(query)
+  const handleDeleteExperience = async (experienceId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this experience?"
+    );
+    
+    if (confirmed) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(
+          `${BASE_URL}/api/experience/delete/${experienceId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-      })
-    : experiences;
+        
+        // Remove from local state
+        setMyExperiences(myExperiences.filter(exp => exp._id !== experienceId));
+        alert("Experience deleted successfully");
+      } catch (error) {
+        console.error("Error deleting experience:", error);
+        
+        if (error.response?.status === 404) {
+          alert("Backend endpoint not configured yet. Please set up the backend to enable delete functionality.");
+        } else {
+          alert("Failed to delete experience. Please try again.");
+        }
+      }
+    }
+  };
 
   const mySkills = ["DSA", "React", "Node.js", "SQL"];
   const popularSkills = [
@@ -243,7 +350,9 @@ const Dashboard = () => {
                 </button>
               </section>
 
-              {/* Experiences */}
+              {/* ============================================================================ */}
+              {/* UNIFIED EXPERIENCES RENDERING - Single list with merged data */}
+              {/* ============================================================================ */}
               <section>
                 <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <TrendingUp className="w-6 h-6 text-indigo-600" />
@@ -255,63 +364,149 @@ const Dashboard = () => {
                   )}
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredExperiences.length > 0 ? (
-                    filteredExperiences.map((e, i) => (
-                      <div
-                        key={i}
-                        className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-indigo-100 hover:border-indigo-300 group"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-bold text-lg text-gray-800 group-hover:text-indigo-600 transition-colors">
-                              {e.company}
-                            </h3>
-                            <p className="text-sm text-gray-600 font-medium">
-                              {e.role}
+                {loadingExperiences ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredExperiences.length > 0 ? (
+                      filteredExperiences.map((exp) => (
+                        <div
+                          key={exp.id}
+                          className={`p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all group relative ${
+                            exp.isMine
+                              ? "bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300"
+                              : "bg-white border border-indigo-100 hover:border-indigo-300"
+                          }`}
+                        >
+                          {/* "Your Post" Badge - Only for user's own experiences */}
+                          {exp.isMine && (
+                            <div className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                              Your Post
+                            </div>
+                          )}
+
+                          <div className={`flex items-start justify-between mb-3 ${exp.isMine ? 'pr-20' : ''}`}>
+                            <div className="flex-1">
+                              <h3 className={`font-bold text-lg text-gray-800 transition-colors ${
+                                exp.isMine ? 'group-hover:text-purple-600' : 'group-hover:text-indigo-600'
+                              }`}>
+                                {exp.company}
+                              </h3>
+                              <p className="text-sm text-gray-600 font-medium flex items-center gap-1">
+                                <Briefcase className="w-3 h-3" />
+                                {exp.role}
+                              </p>
+                            </div>
+                            {!exp.isMine && (
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(exp.difficulty)}`}
+                              >
+                                {exp.difficulty}
+                              </span>
+                            )}
+                          </div>
+
+                          {exp.isMine && (
+                            <div className="mb-3">
+                              <span
+                                className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(exp.difficulty)}`}
+                              >
+                                {exp.difficulty}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="space-y-2 mb-4">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Users className={`w-4 h-4 ${exp.isMine ? 'text-purple-500' : 'text-indigo-500'}`} />
+                              <span>Rounds: {exp.rounds}</span>
+                            </div>
+                            {exp.salary && (
+                              <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
+                                {exp.isMine ? <DollarSign className="w-4 h-4" /> : <Award className="w-4 h-4" />}
+                                <span>{exp.salary}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Show experience text for user's posts */}
+                          {exp.isMine && exp.experience && (
+                            <div className="bg-white/60 rounded-lg p-3 mb-3">
+                              <p className="text-sm text-gray-700 line-clamp-2">
+                                {exp.experience}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Action buttons */}
+                          {exp.isMine ? (
+                            <div className="flex gap-2">
+                              <button 
+                                className="flex-1 text-purple-600 hover:text-purple-700 font-medium hover:bg-white/80 py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
+                                onClick={() => alert('View full experience')}
+                              >
+                                <FileText className="w-4 h-4" />
+                                View Details
+                              </button>
+                              <button 
+                                className="text-red-600 hover:text-red-700 font-medium hover:bg-red-50 px-4 py-2 rounded-lg transition-all flex items-center gap-1 text-sm"
+                                onClick={() => handleDeleteExperience(exp._id)}
+                                title="Delete your experience"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button 
+                              className="w-full mt-3 text-indigo-600 hover:text-indigo-700 font-medium hover:bg-indigo-50 py-2 rounded-lg transition-all flex items-center justify-center gap-2"
+                              onClick={() => alert('View full experience')}
+                            >
+                              View Experience →
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 bg-white rounded-2xl p-12 text-center border-2 border-dashed border-gray-300">
+                        {searchQuery ? (
+                          <>
+                            <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-500 text-lg">
+                              No experiences found matching "{searchQuery}"
                             </p>
-                          </div>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(e.difficulty)}`}
-                          >
-                            {e.difficulty}
-                          </span>
-                        </div>
-
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Users className="w-4 h-4 text-indigo-500" />
-                            <span>Rounds: {e.rounds}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
-                            <Award className="w-4 h-4" />
-                            <span>{e.salary}</span>
-                          </div>
-                        </div>
-
-                        <button className="w-full mt-3 text-indigo-600 hover:text-indigo-700 font-medium hover:bg-indigo-50 py-2 rounded-lg transition-all flex items-center justify-center gap-2">
-                          View Experience →
-                        </button>
+                            <button
+                              onClick={() => {
+                                setSearchQuery("");
+                                setSearchInput("");
+                              }}
+                              className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
+                            >
+                              Clear search
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-500 text-lg mb-2">
+                              No experiences shared yet
+                            </p>
+                            <p className="text-gray-400 text-sm mb-4">
+                              Be the first to share your placement journey!
+                            </p>
+                            <button
+                              onClick={() => navigate("/share-experience")}
+                              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-medium"
+                            >
+                              Share Your Experience
+                            </button>
+                          </>
+                        )}
                       </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 bg-white rounded-2xl p-12 text-center border-2 border-dashed border-gray-300">
-                      <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500 text-lg">
-                        No experiences found matching "{searchQuery}"
-                      </p>
-                      <button
-                        onClick={() => {
-                          setSearchQuery("");
-                          setSearchInput("");
-                        }}
-                        className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
-                      >
-                        Clear search
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </section>
             </div>
 
@@ -388,8 +583,6 @@ const Dashboard = () => {
                   <Award className="w-5 h-5 text-indigo-600" />
                   <h3 className="font-bold text-lg">AI Resume Insights</h3>
                 </div>
-
-                {/* <p className="text-sm text-gray-600 mb-4">Total resumes: 124</p> */}
 
                 {/* My Skills */}
                 <div className="flex gap-2 flex-wrap mb-6">

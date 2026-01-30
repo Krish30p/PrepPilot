@@ -30,6 +30,12 @@ const ShareExperience = () => {
     try {
       const token = localStorage.getItem("token");
       
+      if (!token) {
+        alert("Please login to share your experience");
+        navigate("/login");
+        return;
+      }
+      
       await axios.post(
         `${BASE_URL}/api/experience/add`,
         formData,
