@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ArrowLeft, Briefcase, DollarSign, FileText, Users, TrendingUp, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { BASE_URL } from "../utils/apiPath";
 
 const ShareExperience = () => {
   const navigate = useNavigate();
@@ -28,8 +29,9 @@ const ShareExperience = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      
       await axios.post(
-        "YOUR_BACKEND_URL/api/experience/add",
+        `${BASE_URL}/api/experience/add`,
         formData,
         {
           headers: {
@@ -42,7 +44,8 @@ const ShareExperience = () => {
       navigate("/dashboard");
     } catch (error) {
       console.error(error);
-      alert("Something went wrong");
+      const errorMessage = error.response?.data?.message || error.message || "Something went wrong";
+      alert(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -274,6 +277,50 @@ const ShareExperience = () => {
         </div>
       </div>
 
+      <style>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(20px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 20px) scale(0.9); }
+          75% { transform: translate(50px, 50px) scale(1.05); }
+        }
+        
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slide-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
+        }
+        
+        .animate-slide-up {
+          animation: slide-up 0.6s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
