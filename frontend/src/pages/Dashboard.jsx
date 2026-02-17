@@ -29,42 +29,44 @@ const Dashboard = () => {
 
   // Fetch user data from database
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-        if (!token) {
-          window.location.href = "/login";
-          return;
-        }
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
 
-        // Replace with your actual API endpoint
-        const response = await axios.get("YOUR_BACKEND_URL/api/user/profile", {
+      const response = await axios.get(
+        `${BASE_URL}/api/auth/profile`,
+        {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        });
-
-        if (response.data?.user?.name) {
-          setUserName(response.data.user.name);
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+      );
 
-        // If token is invalid, redirect to login
-        if (error.response?.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          window.location.href = "/login";
-        }
-      } finally {
-        setLoading(false);
+      if (response.data?.user?.name) {
+        setUserName(response.data.user.name);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching user data:", error);
 
-    fetchUserData();
-  }, []);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchUserData();
+}, []);
+
 
   // Fetch user's shared experiences
   useEffect(() => {
@@ -106,9 +108,7 @@ const Dashboard = () => {
     fetchMyExperiences();
   }, []);
 
-  // ============================================================================
   // MERGED DATA LOGIC - Combine backend and static experiences with isMine flag
-  // ============================================================================
   const allExperiences = useMemo(() => {
     // Add isMine flag to user's backend experiences
     const userExperiences = myExperiences.map(exp => ({
@@ -128,9 +128,9 @@ const Dashboard = () => {
     return [...userExperiences, ...communityExperiences];
   }, [myExperiences]);
 
-  // ============================================================================
+ 
   // SEARCH LOGIC - Filter merged experiences based on search query
-  // ============================================================================
+ 
   const filteredExperiences = useMemo(() => {
     if (!searchQuery.trim()) {
       return allExperiences;
