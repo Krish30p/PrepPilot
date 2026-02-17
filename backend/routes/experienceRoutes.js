@@ -6,8 +6,6 @@ import {
 } from "../controllers/experienceController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
-console.log("🔥🔥 experienceRoutes.js LOADED 🔥🔥");
-
 const router = express.Router();
 
 /**
