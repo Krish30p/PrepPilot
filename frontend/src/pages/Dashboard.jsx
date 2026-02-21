@@ -23,114 +23,114 @@ const Dashboard = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [userName, setUserName] = useState("User");
   const [loading, setLoading] = useState(true);
-  const [myExperiences, setMyExperiences] = useState([]);
+  const [allBackendExperiences, setAllBackendExperiences] = useState([]);
+  const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [loadingExperiences, setLoadingExperiences] = useState(true);
   const fileInputRef = useRef(null);
 
   // Fetch user data from database
   useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const token = localStorage.getItem("token");
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-      if (!token) {
-        window.location.href = "/login";
-        return;
-      }
+        if (!token) {
+          window.location.href = "/login";
+          return;
+        }
 
-      const response = await axios.get(
-        `${BASE_URL}/api/auth/profile`,
-        {
+        const response = await axios.get(`${BASE_URL}/api/auth/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+        });
+
+        if (response.data?.user?.name) {
+          setUserName(response.data.user.name);
         }
-      );
 
-      if (response.data?.user?.name) {
-        setUserName(response.data.user.name);
+        // ✅ Store the logged-in user's _id for isMine comparison
+        if (response.data?.user?._id) {
+          setLoggedInUserId(response.data.user._id);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
+    };
 
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchUserData();
+  }, []);
 
-  fetchUserData();
-}, []);
-
-
-  // Fetch user's shared experiences
+  // ✅ Fetch ALL experiences from /api/experience (single global list)
   useEffect(() => {
-    const fetchMyExperiences = async () => {
+    const fetchAllExperiences = async () => {
       try {
         const token = localStorage.getItem("token");
-        
+
         if (!token) {
           setLoadingExperiences(false);
           return;
         }
 
-        const response = await axios.get(
-          `${BASE_URL}/api/experience/my-experiences`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await axios.get(`${BASE_URL}/api/experience`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (response.data?.experiences) {
-          setMyExperiences(response.data.experiences);
+          setAllBackendExperiences(response.data.experiences);
         }
       } catch (error) {
-        // If endpoint doesn't exist (404), silently continue with empty experiences
         if (error.response?.status === 404) {
-          console.warn("Backend endpoint not configured yet. User experiences will be empty.");
-          setMyExperiences([]);
+          console.warn(
+            "Backend endpoint not configured yet. Experiences will be empty."
+          );
+          setAllBackendExperiences([]);
         } else {
-          console.error("Error fetching my experiences:", error);
+          console.error("Error fetching experiences:", error);
         }
       } finally {
         setLoadingExperiences(false);
       }
     };
 
-    fetchMyExperiences();
+    fetchAllExperiences();
   }, []);
 
-  // MERGED DATA LOGIC - Combine backend and static experiences with isMine flag
+  // ✅ MERGED DATA LOGIC
+  // - Backend experiences: compare experience.user._id with loggedInUserId to set isMine
+  // - Static community experiences: always isMine = false
   const allExperiences = useMemo(() => {
-    // Add isMine flag to user's backend experiences
-    const userExperiences = myExperiences.map(exp => ({
+    const backendExperiences = allBackendExperiences.map((exp) => ({
       ...exp,
-      isMine: true,
-      id: exp._id || exp.id, // Normalize ID field
+      isMine:
+        loggedInUserId &&
+        (exp.user?._id === loggedInUserId || exp.user === loggedInUserId),
+      id: exp._id || exp.id,
     }));
 
-    // Add isMine flag to static community experiences
     const communityExperiences = experiences.map((exp, index) => ({
       ...exp,
       isMine: false,
-      id: exp.id || `community-${index}`, // Generate ID if missing
+      id: exp.id || `community-${index}`,
     }));
 
-    // Merge: user's experiences first, then community experiences
-    return [...userExperiences, ...communityExperiences];
-  }, [myExperiences]);
+    // Backend experiences first (most recent / user's own), then static
+    return [...backendExperiences, ...communityExperiences];
+  }, [allBackendExperiences, loggedInUserId]);
 
- 
   // SEARCH LOGIC - Filter merged experiences based on search query
- 
   const filteredExperiences = useMemo(() => {
     if (!searchQuery.trim()) {
       return allExperiences;
@@ -140,16 +140,13 @@ const Dashboard = () => {
     return allExperiences.filter((exp) => {
       const companyMatch = exp.company?.toLowerCase().includes(query);
       const roleMatch = exp.role?.toLowerCase().includes(query);
-      // Add more fields if needed (e.g., college, skills, etc.)
       return companyMatch || roleMatch;
     });
   }, [allExperiences, searchQuery]);
 
   const handleLogout = () => {
-    // Clear user data from localStorage
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    // Redirect to login page
     window.location.href = "/login";
   };
 
@@ -181,7 +178,7 @@ const Dashboard = () => {
 
   const handleDeleteResume = () => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete your resume?",
+      "Are you sure you want to delete your resume?"
     );
     if (confirmed) {
       setSelectedFile(null);
@@ -193,27 +190,28 @@ const Dashboard = () => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this experience?"
     );
-    
+
     if (confirmed) {
       try {
         const token = localStorage.getItem("token");
-        await axios.delete(
-          `${BASE_URL}/api/experience/delete/${experienceId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        await axios.delete(`${BASE_URL}/api/experience/delete/${experienceId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // ✅ Remove deleted experience from the global backend list
+        setAllBackendExperiences((prev) =>
+          prev.filter((exp) => exp._id !== experienceId)
         );
-        
-        // Remove from local state
-        setMyExperiences(myExperiences.filter(exp => exp._id !== experienceId));
         alert("Experience deleted successfully");
       } catch (error) {
         console.error("Error deleting experience:", error);
-        
+
         if (error.response?.status === 404) {
-          alert("Backend endpoint not configured yet. Please set up the backend to enable delete functionality.");
+          alert(
+            "Backend endpoint not configured yet. Please set up the backend to enable delete functionality."
+          );
         } else {
           alert("Failed to delete experience. Please try again.");
         }
@@ -341,7 +339,7 @@ const Dashboard = () => {
                       >
                         {tag}
                       </button>
-                    ),
+                    )
                   )}
                 </div>
 
@@ -351,7 +349,7 @@ const Dashboard = () => {
               </section>
 
               {/* ============================================================================ */}
-              {/* UNIFIED EXPERIENCES RENDERING - Single list with merged data */}
+              {/* UNIFIED EXPERIENCES RENDERING - Single global list */}
               {/* ============================================================================ */}
               <section>
                 <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -380,18 +378,26 @@ const Dashboard = () => {
                               : "bg-white border border-indigo-100 hover:border-indigo-300"
                           }`}
                         >
-                          {/* "Your Post" Badge - Only for user's own experiences */}
+                          {/* "Your Post" Badge */}
                           {exp.isMine && (
                             <div className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
                               Your Post
                             </div>
                           )}
 
-                          <div className={`flex items-start justify-between mb-3 ${exp.isMine ? 'pr-20' : ''}`}>
+                          <div
+                            className={`flex items-start justify-between mb-3 ${
+                              exp.isMine ? "pr-20" : ""
+                            }`}
+                          >
                             <div className="flex-1">
-                              <h3 className={`font-bold text-lg text-gray-800 transition-colors ${
-                                exp.isMine ? 'group-hover:text-purple-600' : 'group-hover:text-indigo-600'
-                              }`}>
+                              <h3
+                                className={`font-bold text-lg text-gray-800 transition-colors ${
+                                  exp.isMine
+                                    ? "group-hover:text-purple-600"
+                                    : "group-hover:text-indigo-600"
+                                }`}
+                              >
                                 {exp.company}
                               </h3>
                               <p className="text-sm text-gray-600 font-medium flex items-center gap-1">
@@ -401,7 +407,9 @@ const Dashboard = () => {
                             </div>
                             {!exp.isMine && (
                               <span
-                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(exp.difficulty)}`}
+                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(
+                                  exp.difficulty
+                                )}`}
                               >
                                 {exp.difficulty}
                               </span>
@@ -411,7 +419,9 @@ const Dashboard = () => {
                           {exp.isMine && (
                             <div className="mb-3">
                               <span
-                                className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(exp.difficulty)}`}
+                                className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(
+                                  exp.difficulty
+                                )}`}
                               >
                                 {exp.difficulty}
                               </span>
@@ -420,12 +430,22 @@ const Dashboard = () => {
 
                           <div className="space-y-2 mb-4">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Users className={`w-4 h-4 ${exp.isMine ? 'text-purple-500' : 'text-indigo-500'}`} />
+                              <Users
+                                className={`w-4 h-4 ${
+                                  exp.isMine
+                                    ? "text-purple-500"
+                                    : "text-indigo-500"
+                                }`}
+                              />
                               <span>Rounds: {exp.rounds}</span>
                             </div>
                             {exp.salary && (
                               <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
-                                {exp.isMine ? <DollarSign className="w-4 h-4" /> : <Award className="w-4 h-4" />}
+                                {exp.isMine ? (
+                                  <DollarSign className="w-4 h-4" />
+                                ) : (
+                                  <Award className="w-4 h-4" />
+                                )}
                                 <span>{exp.salary}</span>
                               </div>
                             )}
@@ -443,14 +463,14 @@ const Dashboard = () => {
                           {/* Action buttons */}
                           {exp.isMine ? (
                             <div className="flex gap-2">
-                              <button 
+                              <button
                                 className="flex-1 text-purple-600 hover:text-purple-700 font-medium hover:bg-white/80 py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
-                                onClick={() => alert('View full experience')}
+                                onClick={() => alert("View full experience")}
                               >
                                 <FileText className="w-4 h-4" />
                                 View Details
                               </button>
-                              <button 
+                              <button
                                 className="text-red-600 hover:text-red-700 font-medium hover:bg-red-50 px-4 py-2 rounded-lg transition-all flex items-center gap-1 text-sm"
                                 onClick={() => handleDeleteExperience(exp._id)}
                                 title="Delete your experience"
@@ -459,9 +479,9 @@ const Dashboard = () => {
                               </button>
                             </div>
                           ) : (
-                            <button 
+                            <button
                               className="w-full mt-3 text-indigo-600 hover:text-indigo-700 font-medium hover:bg-indigo-50 py-2 rounded-lg transition-all flex items-center justify-center gap-2"
-                              onClick={() => alert('View full experience')}
+                              onClick={() => alert("View full experience")}
                             >
                               View Experience →
                             </button>

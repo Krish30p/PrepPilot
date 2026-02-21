@@ -2,20 +2,19 @@ import Experience from "../models/Experience.js";
 
 /**
  * @route   POST /api/experience/add
- * @desc    Add a new experience
+ * @desc    Add new experience
  * @access  Private
  */
 export const addExperience = async (req, res) => {
   try {
     const { company, role, difficulty, rounds, salary, experience } = req.body;
 
-    // Basic validation
     if (!company || !role || !rounds || !experience) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const newExperience = await Experience.create({
-      user: req.user._id, // comes from protect middleware
+      user: req.user._id,
       company,
       role,
       difficulty,
@@ -37,7 +36,7 @@ export const addExperience = async (req, res) => {
 
 /**
  * @route   GET /api/experience/my-experiences
- * @desc    Get experiences of logged-in user
+ * @desc    Get logged-in user's experiences
  * @access  Private
  */
 export const getMyExperiences = async (req, res) => {
@@ -54,8 +53,26 @@ export const getMyExperiences = async (req, res) => {
 };
 
 /**
+ * @route   GET /api/experience
+ * @desc    Get all experiences (global feed)
+ * @access  Public
+ */
+export const getAllExperiences = async (req, res) => {
+  try {
+    const experiences = await Experience.find()
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ experiences });
+  } catch (error) {
+    console.error("Get all experiences error:", error);
+    res.status(500).json({ message: "Failed to fetch experiences" });
+  }
+};
+
+/**
  * @route   DELETE /api/experience/delete/:id
- * @desc    Delete an experience (only owner)
+ * @desc    Delete experience (only owner)
  * @access  Private
  */
 export const deleteExperience = async (req, res) => {
@@ -66,9 +83,8 @@ export const deleteExperience = async (req, res) => {
       return res.status(404).json({ message: "Experience not found" });
     }
 
-    // Ensure only the owner can delete
     if (experience.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not authorized to delete this experience" });
+      return res.status(403).json({ message: "Not authorized" });
     }
 
     await experience.deleteOne();
