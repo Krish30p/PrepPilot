@@ -19,21 +19,24 @@ export const registerUser = async (req, res) => {
     // Validate input
     if (!name || !email || !password) {
       return res.status(400).json({
+        success: false,
         message: "All fields are required",
       });
     }
 
-    // Check if user exists
+    // Check if user exists (Manual Check)
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({
-        message: "User already exists",
+        success: false,
+        message: "User already exists with this email",
       });
     }
 
     // Password validation
     if (password.length < 8) {
       return res.status(400).json({
+        success: false,
         message: "Password must be at least 8 characters",
       });
     }
@@ -60,7 +63,18 @@ export const registerUser = async (req, res) => {
 
   } catch (error) {
     console.error("REGISTER ERROR 👉", error);
+
+    // FIX: Handle MongoDB Duplicate Key Error (Code 11000)
+    // This happens if two users try to register with the same unique field
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "Registration failed: This email is already in use.",
+      });
+    }
+
     res.status(500).json({
+      success: false,
       message: "Server Error",
     });
   }
@@ -75,6 +89,7 @@ export const loginUser = async (req, res) => {
 
     if (!user) {
       return res.status(401).json({
+        success: false,
         message: "Invalid email or password",
       });
     }
@@ -83,6 +98,7 @@ export const loginUser = async (req, res) => {
 
     if (!isMatch) {
       return res.status(401).json({
+        success: false,
         message: "Invalid email or password",
       });
     }
@@ -98,6 +114,7 @@ export const loginUser = async (req, res) => {
   } catch (error) {
     console.error("LOGIN ERROR 👉", error);
     res.status(500).json({
+      success: false,
       message: "Server Error",
     });
   }
@@ -112,6 +129,7 @@ export const getUserProfile = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: "Failed to fetch profile",
     });
   }
