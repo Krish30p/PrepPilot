@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ShareExperience from "./components/ShareExperience";
+import ExperienceDetails from "./pages/ExperienceDetails";
 
 
 
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />     
          <Route path="/share-experience" element={<ShareExperience />} />   
+         <Route path="/experience/:id" element={<ExperienceDetails />} />
       </Routes>
     </BrowserRouter>
   );
