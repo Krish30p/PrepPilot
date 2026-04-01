@@ -26,6 +26,8 @@ const Dashboard = () => {
   const [allBackendExperiences, setAllBackendExperiences] = useState([]);
   const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [loadingExperiences, setLoadingExperiences] = useState(true);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState(null);
   const fileInputRef = useRef(null);
 
   // Fetch user data from database
@@ -160,15 +162,40 @@ const Dashboard = () => {
     }
   };
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.type === "application/pdf") {
-        setSelectedFile(file);
-        console.log("Selected file:", file.name);
-      } else {
-        alert("Please select a PDF file");
-      }
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Please select a PDF file");
+      return;
+    }
+
+    setSelectedFile(file);
+    setUploadingResume(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      const res = await axios.post(
+        `${BASE_URL}/api/upload-resume`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setResumeUrl(res.data.url);
+      alert("Resume uploaded to Cloudinary successfully! 🎉");
+    } catch (err) {
+      console.error("Resume upload failed:", err);
+      alert("Failed to upload resume. Please try again.");
+      setSelectedFile(null);
+    } finally {
+      setUploadingResume(false);
     }
   };
 
@@ -182,7 +209,7 @@ const Dashboard = () => {
     );
     if (confirmed) {
       setSelectedFile(null);
-      console.log("Resume deleted");
+      setResumeUrl(null);
     }
   };
 
@@ -561,24 +588,37 @@ const Dashboard = () => {
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-green-700 flex items-center gap-2">
                           <FileText className="w-4 h-4" />
-                          Resume Uploaded
+                          {uploadingResume ? "Uploading..." : "Resume Uploaded ✅"}
                         </span>
-                        <button
-                          onClick={handleDeleteResume}
-                          className="text-red-600 hover:text-red-700 text-sm font-medium hover:bg-red-50 px-3 py-1 rounded-lg transition-all"
-                        >
-                          Delete
-                        </button>
+                        {!uploadingResume && (
+                          <button
+                            onClick={handleDeleteResume}
+                            className="text-red-600 hover:text-red-700 text-sm font-medium hover:bg-red-50 px-3 py-1 rounded-lg transition-all"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </div>
                       <p className="text-xs text-gray-600 mb-2">
                         {selectedFile.name}
                       </p>
-                      <button
-                        onClick={() => alert("Opening resume viewer...")}
-                        className="w-full text-indigo-600 hover:text-indigo-700 font-medium hover:bg-indigo-50 py-2 rounded-lg transition-all text-sm"
-                      >
-                        See Your Resume →
-                      </button>
+                      {uploadingResume ? (
+                        <div className="flex items-center justify-center py-2">
+                          <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="ml-2 text-sm text-gray-500">Uploading to Cloudinary...</span>
+                        </div>
+                      ) : resumeUrl ? (
+                        <a
+                          href={resumeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full block text-center text-indigo-600 hover:text-indigo-700 font-medium hover:bg-indigo-50 py-2 rounded-lg transition-all text-sm"
+                        >
+                          See Your Resume →
+                        </a>
+                      ) : (
+                        <p className="text-xs text-red-500">Upload failed</p>
+                      )}
                     </div>
                   )}
 

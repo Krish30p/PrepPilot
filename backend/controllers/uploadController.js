@@ -32,6 +32,7 @@ export const uploadResume = async (req, res) => {
       public_id: result.public_id,
     });
   } catch (error) {
+    console.error("❌ Resume upload error:", error);
     res.status(500).json({ message: error.message });
   }
 };
